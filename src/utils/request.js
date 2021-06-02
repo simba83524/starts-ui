@@ -30,7 +30,7 @@ service.interceptors.request.use(
     config => {
         NProgress.start();
         let isAuthorization = config.headers['isAuthorization'];
-        let token = gettoken();
+        let token = getToken();
         if (!isAuthorization) {
             config.headers['Authorization'] = token;
         }
@@ -46,7 +46,6 @@ service.interceptors.request.use(
 
 //response拦截器
 service.interceptors.response.use(res => {
-        NProgress.done();
         let status = res.status;
         let config = res.config;
         console.log('http响应码：%s', status);
@@ -73,7 +72,7 @@ service.interceptors.response.use(res => {
                             //遍历缓存队列发起请求传入最新token
                             requests.forEach((request) => {
                                 console.log('interceptors.response，释放请求：%s', JSON.stringify(request));
-                                request(gettoken());
+                                request(getToken());
                             });
                             //重试完清空这个队列
                             requests = [];
@@ -105,6 +104,7 @@ service.interceptors.response.use(res => {
                 }
             }
         }
+        NProgress.done();
         return res.data;
     },
     error => {
@@ -113,7 +113,7 @@ service.interceptors.response.use(res => {
     }
 )
 
-function gettoken() {
+function getToken() {
     let token = Token.getToken();
     if (token) {
         let hearder = token.token_type;
