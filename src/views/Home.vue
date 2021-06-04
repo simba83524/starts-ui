@@ -47,6 +47,8 @@ export default {
       headerFixed: false,
       siderFixed: false,
       siderCollapsed: false,
+      sysMenus:[],
+      devMenus:[],
       menuDatas: [],
       aplications: [],
       options: {
@@ -63,20 +65,10 @@ export default {
   },
   methods: {
     select(app) {
-      //console.log(app);
-      let sysmenu = [];
-      let devmenu = [];
-      store.state.menus.menus.forEach(node=>{
-        if(node.appId == 1){
-          sysmenu.push(node);
-        }else {
-          devmenu.push(node);
-        }
-      });
       if(app.id == 1){
-        this.menuDatas = sysmenu;
+        this.menuDatas = this.sysMenus;
       }else {
-        this.menuDatas = devmenu;
+        this.menuDatas = this.devMenus;
       }
     },
     triggerClick(data) {
@@ -105,9 +97,12 @@ export default {
           this.aplications = menus.applications;
           menus.menus.forEach(menu=>{
             if(menu.appId == 1){
-              this.menuDatas.push(menu);
+              this.sysMenus.push(menu);
+            }else {
+              this.devMenus.push(menu);
             }
           })
+          this.menuDatas = this.sysMenus;
         } else {
           console.log(`这是一个${res.message}的消息`);
         }
