@@ -14,14 +14,26 @@ const routes = [
         path: '/login',
         name: 'Login',
         component: (resolve) => require(['../components/login/index'], resolve)
-    }, {
+    },
+    {
         path: '/',
+        name: 'Home',
         component: (resolve) => require(['../views/Home'], resolve),
-        children: []
+        children: [{
+            path:'/dashboard',
+            name:'Dashboard',
+            component: (resolve) => require(['../views/Dashboard'], resolve)
+        }]
+    },
+    {
+        path: '*',
+        name: 'NotFound',
+        component: (resolve) => require(['../views/NotFound'], resolve)
     }
 ]
 
 const router = new VueRouter({
+    mode:'hash',
     routes
 })
 

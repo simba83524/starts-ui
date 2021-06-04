@@ -8,6 +8,8 @@ export default new Vuex.Store({
   state: {
     token: {},
     client: {},
+    menus:[],
+    applications:[],
     routes:[]
   },
   mutations: {
@@ -26,6 +28,9 @@ export default new Vuex.Store({
     delClient(state){
       state.client = {};
       Token.delClient();
+    },
+    setMenus(state,data){
+      state.menus = data;
     }
   },
   actions: {

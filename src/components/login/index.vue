@@ -139,6 +139,7 @@
   </div>
 </template>
 <script>
+import store from '../../store';
 import {login} from '../../api/login';
 
 export default {
@@ -165,8 +166,8 @@ export default {
       login(this.client, this.login).then(res => {
         if (res.code == 1111) {
           let data = res.data;
-          this.$store.commit('setAccessToken', data);
-          this.$store.commit('setClient', this.client);
+          store.commit('setAccessToken', data);
+          store.commit('setClient', this.client);
           this.$router.replace('/');
         } else {
           this.$Notice['error'](res.message);

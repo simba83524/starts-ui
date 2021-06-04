@@ -3,19 +3,27 @@
     <Layout :siderFixed="true" :siderCollapsed="siderCollapsed">
       <Sider theme="dark">
         <div class="layout-logo"></div>
-        <Menu style="margin-top: 20px;" class="h-menu-dark" :datas="menuDatas" :inlineCollapsed="siderCollapsed"></Menu>
+        <Menu style="margin-top: 20px;" :datas="menuDatas" :option="options"
+              :inlineCollapsed="siderCollapsed" ref="menu" @select="triggerSelect" @click="triggerClick"></Menu>
       </Sider>
       <Layout :headerFixed="headerFixed">
         <HHeader theme="white">
-          <div style="width:100px;float:left;">
-            <Button icon="h-icon-menu" size="l" noBorder style="font-size: 20px"
+          <div style="width:50px;float:left;">
+            <Button icon="h-icon-menu" size="l" noBorder style="font-size: 16px"
                     @click="siderCollapsed=!siderCollapsed"></Button>
+          </div>
+          <div class="buttons" style="display: flex;flex-direction: row;align-items: center;">
+            <div v-for="application in aplications" :key="application.id">
+              <button class="h-btn h-btn-no-border h-btn-text-primary" style="font-size: 16px" @click="select(application)">{{application.name}}</button>
+            </div>
           </div>
         </HHeader>
         <div style="padding: 0px 30px;">
           <Breadcrumb :datas="datas" style="margin: 16px 0px;"></Breadcrumb>
           <div style="background: rgb(255, 255, 255); padding: 24px; min-height: 280px;">
-            <router-view/>
+            <transition name="fade">
+              <router-view/>
+            </transition>
           </div>
           <HFooter class="text-center">Copyright © {{ year }}
             <a href="https://github.com/simba83524" target="_blank">chenjun</a>
@@ -28,6 +36,9 @@
 
 <script>
 import Token from '@/utils/token'
+import router from "@/router";
+import store from '@/store';
+import {loadmenus} from "@/api/menu";
 
 export default {
   data() {
@@ -36,27 +47,83 @@ export default {
       headerFixed: false,
       siderFixed: false,
       siderCollapsed: false,
-      menuDatas: [
-        {title: '首页', key: 'welcome', icon: 'h-icon-home'},
-        {title: '查询', key: 'search', icon: 'h-icon-search'},
-        {title: '收藏', key: 'favor', icon: 'h-icon-star', count: 100, children: [{title: '收藏-1', key: 'favor2-1'}]},
-        {title: '任务', icon: 'h-icon-task', key: 'task'}
-      ],
+      menuDatas: [],
+      aplications: [],
+      options: {
+        titleName: 'title',
+        keyName: 'key',
+        childrenName: 'children'
+      },
       datas: [
-        {icon: 'h-icon-home'},
+        {title: '工作台', icon: 'h-icon-home', route: {name: 'Dashboard'}},
         {title: 'Component', icon: 'h-icon-complete', route: {name: 'Component'}},
         {title: 'Breadcrumb', icon: 'h-icon-star'}
       ]
     };
   },
+  methods: {
+    select(app) {
+      //console.log(app);
+      let sysmenu = [];
+      let devmenu = [];
+      store.state.menus.menus.forEach(node=>{
+        if(node.appId == 1){
+          sysmenu.push(node);
+        }else {
+          devmenu.push(node);
+        }
+      });
+      if(app.id == 1){
+        this.menuDatas = sysmenu;
+      }else {
+        this.menuDatas = devmenu;
+      }
+    },
+    triggerClick(data) {
+      console.log(data);
+    },
+    triggerSelect(menu) {
+      this.$Message.info(`选中${menu.title}${menu.path}`);
+      let str = menu.name;
+      let route = {
+        path: '/' + menu.path,
+        name: str.replace(str[0], str[0].toUpperCase()),
+        meta: menu.meta,
+        component: (resolve) => require([`../views/${menu.component}`], resolve)
+      };
+      router.addRoute('Home', route);
+      router.push(route);
+      //console.log(router.getRoutes());
+    }
+  },
   mounted() {
-    let token = this.$store.state.token;
+    this.$nextTick(function () {
+      loadmenus().then(res => {
+        if (res.code == 1111) {
+          let menus = res.data;
+          store.commit('setMenus', res.data);
+          this.aplications = menus.applications;
+          menus.menus.forEach(menu=>{
+            if(menu.appId == 1){
+              this.menuDatas.push(menu);
+            }
+          })
+        } else {
+          console.log(`这是一个${res.message}的消息`);
+        }
+        console.log(res);
+      }).catch(error => {
+        console.log(error);
+        console.log(`这是一个${error.message}的消息`);
+      });
+    })
+    let token = store.state.token;
     //console.log("从state中获取token：%s", token.access_token);
     if (!token.access_token) {
       let token = Token.getToken();
       //console.log("从sessionStorage中获取token：%s", JSON.stringify(token));
       if (!token) {
-        window.location.href = "/login";
+        router.replace('Login');
       }
     }
   },
